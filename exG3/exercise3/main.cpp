@@ -147,6 +147,9 @@ int main() try
 	OGL_CHECKPOINT_ALWAYS();
 
 	// TODO: global GL setup goes here
+	glEnable(GL_FRAMEBUFFER_SRGB);
+	glEnable(GL_CULL_FACE);
+	glClearColor(0.2f,0.2f,0.2f,0.f);
 
 	OGL_CHECKPOINT_ALWAYS();
 
@@ -168,13 +171,56 @@ int main() try
 	state.prog = &prog;
 	state.camControl.radius = 10.f;
 
+	// --------------------------- NEW -----------------------------
+	// Create vertex buffers and VAO
+	//TODO: create VBOs and VAO
+	GLuint colorsVBO = 0;
+	GLuint positionsVBO = 0;
+	glGenBuffers(1, &colorsVBO);
+	glGenBuffers(1, &positionsVBO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, colorsVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(kCubeColors), kCubeColors, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, positionsVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(kCubePositions), kCubePositions, GL_STATIC_DRAW);
+
+	// VAO
+	GLuint vao = 0;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray( vao );
+
+	glBindBuffer( GL_ARRAY_BUFFER, positionsVBO);
+	glVertexAttribPointer(
+		0,
+		3, GL_FLOAT, GL_FALSE,
+		0,
+		0
+	);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer( GL_ARRAY_BUFFER, colorsVBO);
+	glVertexAttribPointer(
+		1,
+		3, GL_FLOAT, GL_FALSE,
+		0,
+		0
+	);
+	glEnableVertexAttribArray( 1 );
+
+	// glBindVertexArray(0);
+	// glBindBuffer( GL_ARRAY_BUFFER, 0);
+
+	// glDeleteBuffers(1, &colorsVBO);
+	// glDeleteBuffers(1, &positionsVBO);
+
+	// --------------------------- END NEW -----------------------
+
 	// Animation state
 	auto last = Clock::now();
 
 	float angle = 0.f;
 
-	// Create vertex buffers and VAO
-	//TODO: create VBOs and VAO
 
 	// Main loop
 	while( !glfwWindowShouldClose( window ) )
@@ -226,11 +272,38 @@ int main() try
 
 		// Update: compute matrices
 		//TODO: define and compute projCameraWorld matrix
+		Mat44f model2world = make_rotation_y(angle);
+		Mat44f world2camera = make_translation( { 0.f, 0.f , -10.f });
+		Mat44f projection = make_perspective_projection(
+			60.f * std::numbers::pi_v<float> / 180.f,
+			fbwidth/float(fbheight),
+			0.1f,
+			100.f
+		);
+
+		Mat44f projCamWor = projection * world2camera * model2world;
+
+		// Mat44f Rx = make_rotation_x(state.camControl.theta);
+		// Mat44f Ry = make_rotation_y(state.camControl.phi);
+		// Mat44f T = make_translation({ 0.f, 0.f, -state.camControl.radius } );
+		// Mat44f world2camera = T * Ry * Rx;
 
 		// Draw scene
 		OGL_CHECKPOINT_DEBUG();
 
+		glClear( GL_COLOR_BUFFER_BIT );
+
+		glUseProgram( prog.programId());
+
+		// ADD the world transformation matrices
+		glUniformMatrix4fv(0, 1, GL_TRUE, projCamWor.v);
+		// glUniformMatrix4fv(0, 1, GL_FALSE, model2world.v);
+		// glUniformMatrix4fv(1, 1, GL_FALSE, world2camera.v);
+
 		//TODO: draw frame
+		glBindVertexArray(vao);
+		glDrawArrays(GL_TRIANGLES, 0, 6*2*3);
+		glBindVertexArray(0);
 
 		OGL_CHECKPOINT_DEBUG();
 
