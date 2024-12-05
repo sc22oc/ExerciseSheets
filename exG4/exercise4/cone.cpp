@@ -37,6 +37,15 @@ SimpleMeshData make_cone( bool aCapped, std::size_t aSubdivs, Vec3f aColor, Mat4
 		prevZ = z;
 
 	}
+
+	for(auto &p : pos){
+	    Vec4f p4{ p.x, p.y, p.z, 1.f };
+	    Vec4f t = aPreTransform * p4;
+	    t /= t.w;
+
+            p = Vec3f{ t.x, t.y, t.z } ;
+	}
+
 	std::vector col( pos.size(), aColor );
 	return SimpleMeshData{ std::move(pos), std::move(col) };	
 }

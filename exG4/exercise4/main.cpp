@@ -174,23 +174,47 @@ int main() try
 
 	// memory setup
 	// auto testCylinder = make_cylinder( true, 16, {1.f, 0.f, 0.f} );
-	auto testCone = make_cone(true, 16, {1.f, 1.f, 0.f});
 
 	/*
 	auto testCylinder = make_cylinder( true, 16, {0.f, 1.f, 0.f},
+	auto testCone = make_cone(true, 16, {1.f, 1.f, 0.f});
 	    make_rotation_z( std::numbers::pi_v<float> / 2.f ) *
 	    make_scaling( 5.f, 0.1f, 0.1f ) 
 	);
 	*/
 
-	// Add the cone to the cylinder
-	/*
-	GLuint vao = create_vao( testCylinder );
-	std::size_t vertexCount = testCylinder.positions.size();
-	*/
+	auto xcyl = make_cylinder( true, 16, {1.f, 0.f, 0.f},
+	    make_scaling( 5.f, 0.1f, 0.1f )
+	);
+	auto xcone = make_cone( true, 16, {0.f, 0.f, 0.f},
+	    make_scaling( 1.f, 0.3f, 0.3f ) * make_translation( { 5.f, 0.f, 0.f } )
+	);
 
-	GLuint vao = create_vao( testCone );
-	std::size_t vertexCount = testCone.positions.size();
+	auto xarrow = concatenate( std::move(xcyl), xcone );
+
+	auto ycyl = make_cylinder( true, 16, {0.f, 1.f, 0.f},
+	    make_rotation_y( std::numbers::pi_v<float> / 2.f) * make_scaling( 5.f, 0.1f, 0.1f )
+	);
+	auto ycone = make_cone( true, 16, {0.f, 0.f, 0.f},
+	    make_rotation_y( std::numbers::pi_v<float> / 2.f) * make_scaling( 1.f, 0.3f, 0.3f ) * make_translation( { 5.f, 0.f, 0.f } )
+	);
+
+	auto yarrow = concatenate( std::move(ycyl), ycone );
+
+	auto zcyl = make_cylinder( true, 16, {0.f, 0.f, 1.f},
+	    make_rotation_z( std::numbers::pi_v<float> / 2.f) * make_scaling( 5.f, 0.1f, 0.1f )
+	);
+	auto zcone = make_cone( true, 16, {0.f, 0.f, 0.f},
+	    make_rotation_z( std::numbers::pi_v<float> / 2.f) * make_scaling( 1.f, 0.3f, 0.3f ) * make_translation( { 5.f, 0.f, 0.f } )
+	);
+
+	auto zarrow = concatenate( std::move(zcyl), zcone );
+
+	auto xygizmo = concatenate( xarrow, yarrow );
+	auto gizmo = concatenate(xygizmo, zarrow);
+
+	GLuint vao = create_vao( gizmo );
+	std::size_t vertexCount = gizmo.positions.size();
 
 	// Main loop
 	while( !glfwWindowShouldClose( window ) )
@@ -272,12 +296,14 @@ int main() try
 		glBindVertexArray(vao);
 		glUniformMatrix4fv(0, 1, GL_TRUE, projCamWor.v);
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		/* check point mode so we know points in right place
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		glPointSize(10.0f);
 		*/
+
 
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 		glBindVertexArray(0);

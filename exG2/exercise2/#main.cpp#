@@ -20,7 +20,7 @@
 
 namespace
 {
-	constexpr char const* kWindowTitle = "COMP3811 - GL Triangle";
+	constexpr char const* kWindowTitle = "COMP3811 - GL Triangle";(setq tab-width 
 
 	struct State_
 	{
