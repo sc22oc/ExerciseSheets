@@ -19,11 +19,19 @@ SimpleMeshData make_cone( bool aCapped, std::size_t aSubdivs, Vec3f aColor, Mat4
 		// Two triangles (= 3*2 positions) create one segment of the cylinder’s shell.
 		pos.emplace_back( Vec3f{ 0.f, prevY, prevZ } );
 		pos.emplace_back( Vec3f{ 0.f, y, z } );
-		pos.emplace_back( Vec3f{ 0.5f, 0.f, 0.f } );
+		pos.emplace_back( Vec3f{ 1.f, 0.f, 0.f } );
 
+		if(aCapped){
+		    pos.emplace_back( Vec3f{ 0.f, prevY, prevZ } );
+		    pos.emplace_back( Vec3f{ 0.f, y, z } );
+		    pos.emplace_back( Vec3f{ 0.f, 0.f, 0.f } );
+		}
+
+		/*
 		pos.emplace_back( Vec3f{ 0.f, y, z } );
 		pos.emplace_back( Vec3f{ 1.f, y, z } );
 		pos.emplace_back( Vec3f{ -1.5f, 0.f, 0.f } );
+		*/
 
 		prevY = y;
 		prevZ = z;

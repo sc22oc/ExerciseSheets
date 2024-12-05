@@ -173,11 +173,24 @@ int main() try
 	float angle = 0.f;
 
 	// memory setup
-	auto testCylinder = make_cylinder( false, 16, {1.f, 0.f, 0.f} );
-	// auto testCone = make_cone(true, 16, {1.f, 0.f, 0.f});
+	// auto testCylinder = make_cylinder( true, 16, {1.f, 0.f, 0.f} );
+	auto testCone = make_cone(true, 16, {1.f, 1.f, 0.f});
+
+	/*
+	auto testCylinder = make_cylinder( true, 16, {0.f, 1.f, 0.f},
+	    make_rotation_z( std::numbers::pi_v<float> / 2.f ) *
+	    make_scaling( 5.f, 0.1f, 0.1f ) 
+	);
+	*/
+
 	// Add the cone to the cylinder
+	/*
 	GLuint vao = create_vao( testCylinder );
 	std::size_t vertexCount = testCylinder.positions.size();
+	*/
+
+	GLuint vao = create_vao( testCone );
+	std::size_t vertexCount = testCone.positions.size();
 
 	// Main loop
 	while( !glfwWindowShouldClose( window ) )
