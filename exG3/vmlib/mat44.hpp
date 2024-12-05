@@ -174,8 +174,8 @@ Mat44f make_perspective_projection( float aFovInRadians, float aAspect, float aN
 	projMat(0, 0) = f / aAspect;
 	projMat(1, 1) = f;
 	projMat(2, 2) = (aFar + aNear) / (aNear - aFar);
-	projMat(2, 3) = -1; // TODO: This is not correct
-	projMat(3, 2) = (2.f * aFar * aNear) / (aNear - aFar);
+	projMat(2, 3) = (2.f * aFar * aNear) / (aNear - aFar);
+	projMat(3, 2) = -1; // TODO: This is not correct
 	projMat(3, 3) = 0.f;
 
 
