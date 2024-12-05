@@ -174,6 +174,8 @@ int main() try
 
 	// memory setup
 	auto testCylinder = make_cylinder( false, 16, {1.f, 0.f, 0.f} );
+	// auto testCone = make_cone(true, 16, {1.f, 0.f, 0.f});
+	// Add the cone to the cylinder
 	GLuint vao = create_vao( testCylinder );
 	std::size_t vertexCount = testCylinder.positions.size();
 
@@ -210,7 +212,6 @@ int main() try
 		auto const now = Clock::now();
 		float dt = std::chrono::duration_cast<Secondsf>(now-last).count();
 		last = now;
-
 
 		angle += dt * std::numbers::pi_v<float> * 0.3f;
 		if( angle >= 2.f*std::numbers::pi_v<float> )
@@ -257,7 +258,14 @@ int main() try
 		//TODO: draw frame
 		glBindVertexArray(vao);
 		glUniformMatrix4fv(0, 1, GL_TRUE, projCamWor.v);
+
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+		/* check point mode so we know points in right place
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		glPointSize(10.0f);
+		*/
+
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 		glBindVertexArray(0);
 		
