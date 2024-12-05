@@ -142,6 +142,10 @@ int main() try
 	OGL_CHECKPOINT_ALWAYS();
 
 	// TODO: global GL setup goes here
+	glEnable(GL_FRAMEBUFFER_SRGB);
+	//glEnable(GL_CULL_FACE);
+	glClearColor(0.2f,0.2f,0.2f,0.f);
+	glEnable( GL_DEPTH_TEST );	
 
 	OGL_CHECKPOINT_ALWAYS();
 
@@ -168,8 +172,10 @@ int main() try
 
 	float angle = 0.f;
 
-	// Create vertex buffers and VAO
-	//TODO: create VBOs and VAO
+	// memory setup
+	auto testCylinder = make_cylinder( false, 16, {1.f, 0.f, 0.f} );
+	GLuint vao = create_vao( testCylinder );
+	std::size_t vertexCount = testCylinder.positions.size();
 
 	// Main loop
 	while( !glfwWindowShouldClose( window ) )
@@ -220,13 +226,41 @@ int main() try
 			state.camControl.radius = 0.1f;
 
 		// Update: compute matrices
+		// we don't need to make rotation
+		Mat44f model2world = make_rotation_y(angle) * make_translation({-0.6f,0.f,0.f});
+		Mat44f projection = make_perspective_projection(
+			// conversion to radians
+			60.f * std::numbers::pi_v<float> / 180.f,
+			// aspect ratio
+			fbwidth / float(fbheight),
+			// near and far plane
+			0.1f,
+			100.f
+		);
+
 		//TODO: define and compute projCameraWorld matrix
+		Mat44f Rx = make_rotation_x(state.camControl.theta);
+		Mat44f Ry = make_rotation_y(state.camControl.phi);
+		Mat44f T = make_translation({ 0.f, 0.f, -state.camControl.radius } );
+
+		Mat44f world2camera = T * Ry * Rx;
+
+		Mat44f projCamWor = projection * world2camera * model2world;
 
 		// Draw scene
 		OGL_CHECKPOINT_DEBUG();
 
-		//TODO: draw frame
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+		glUseProgram( prog.programId());
+
+		//TODO: draw frame
+		glBindVertexArray(vao);
+		glUniformMatrix4fv(0, 1, GL_TRUE, projCamWor.v);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+		glBindVertexArray(0);
+		
 		OGL_CHECKPOINT_DEBUG();
 
 		// Display results

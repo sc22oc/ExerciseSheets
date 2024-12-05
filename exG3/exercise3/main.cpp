@@ -92,6 +92,7 @@ int main() try
 	glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
 
 	//TODO: additional GLFW configuration here
+    glfwWindowHint( GLFW_DEPTH_BITS, 24 ); 
 
 #	if !defined(NDEBUG)
 	// When building in debug mode, request an OpenGL debug context. This
@@ -150,6 +151,7 @@ int main() try
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glEnable(GL_CULL_FACE);
 	glClearColor(0.2f,0.2f,0.2f,0.f);
+	glEnable( GL_DEPTH_TEST );
 
 	OGL_CHECKPOINT_ALWAYS();
 
@@ -272,8 +274,9 @@ int main() try
 
 		// Update: compute matrices
 		//TODO: define and compute projCameraWorld matrix
-		Mat44f model2world = make_rotation_y(angle);
-		Mat44f world2camera = make_translation( { 0.f, 0.f , -10.f });
+		Mat44f offsetLeft = make_translation({5.f, 0.f, 0.f});
+		Mat44f model2world = make_rotation_y(0);
+		// Mat44f world2camera = make_translation( { 0.f, 0.f , -10.f });
 		Mat44f projection = make_perspective_projection(
 			60.f * std::numbers::pi_v<float> / 180.f,
 			fbwidth/float(fbheight),
@@ -281,17 +284,21 @@ int main() try
 			100.f
 		);
 
+
+		Mat44f Rx = make_rotation_x(state.camControl.theta);
+		Mat44f Ry = make_rotation_y(state.camControl.phi);
+		Mat44f T = make_translation({ 0.f, 0.f, -state.camControl.radius } );
+
+		Mat44f world2camera = T * Ry * Rx;
+
 		Mat44f projCamWor = projection * world2camera * model2world;
 
-		// Mat44f Rx = make_rotation_x(state.camControl.theta);
-		// Mat44f Ry = make_rotation_y(state.camControl.phi);
-		// Mat44f T = make_translation({ 0.f, 0.f, -state.camControl.radius } );
-		// Mat44f world2camera = T * Ry * Rx;
+		Mat44f projCamWor2 = projection * world2camera * model2world * offsetLeft;
 
 		// Draw scene
 		OGL_CHECKPOINT_DEBUG();
 
-		glClear( GL_COLOR_BUFFER_BIT );
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 		glUseProgram( prog.programId());
 
@@ -302,6 +309,11 @@ int main() try
 
 		//TODO: draw frame
 		glBindVertexArray(vao);
+		glDrawArrays(GL_TRIANGLES, 0, 6*2*3);
+		glBindVertexArray(0);
+
+		glBindVertexArray(vao);
+		glUniformMatrix4fv(0, 1, GL_TRUE, projCamWor2.v);
 		glDrawArrays(GL_TRIANGLES, 0, 6*2*3);
 		glBindVertexArray(0);
 
