@@ -1,6 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <iostream>
+
 #include <numbers>
 #include <typeinfo>
 #include <stdexcept>
@@ -142,6 +144,11 @@ int main() try
 	OGL_CHECKPOINT_ALWAYS();
 
 	// TODO: global GL setup goes here
+	// TODO: global GL setup goes here
+	glEnable(GL_FRAMEBUFFER_SRGB);
+	//glEnable(GL_CULL_FACE);
+	glClearColor(0.2f,0.2f,0.2f,0.f);
+	glEnable( GL_DEPTH_TEST );	
 
 	OGL_CHECKPOINT_ALWAYS();
 
@@ -170,6 +177,16 @@ int main() try
 
 	// Create vertex buffers and VAO
 	//TODO: create VBOs and VAO
+	// auto cyl = make_cylinder(true, 128, {0.4f, 0.4f, 0.4f},
+	// make_rotation_z(std::numbers::pi_v<float> / 2.f)
+	// * make_scaling(8.f, 2.f, 2.f)
+	// );
+	// GLuint vao = create_vao(cyl);
+	// std::size_t cylCount = cyl.positions.size();
+
+	auto arm = load_simple_binary_mesh("assets/ex5/Armadillo.comp3811bin");
+	GLuint vao = create_vao(arm);
+	std::size_t armCount = arm.positions.size();
 
 	// Main loop
 	while( !glfwWindowShouldClose( window ) )
@@ -220,12 +237,59 @@ int main() try
 			state.camControl.radius = 0.1f;
 
 		// Update: compute matrices
+		// Update: compute matrices
+		// we don't need to make rotation
+		Mat44f model2world = make_rotation_y(angle) * make_translation({-0.6f,0.f,0.f});
+		Mat44f projection = make_perspective_projection(
+			// conversion to radians
+			60.f * std::numbers::pi_v<float> / 180.f,
+			// aspect ratio
+			fbwidth / float(fbheight),
+			// near and far plane
+			0.1f,
+			100.f
+		);
+
+		Mat33f normalMatrix = mat44_to_mat33( transpose(invert(model2world)));
+
 		//TODO: define and compute projCameraWorld matrix
+		Mat44f Rx = make_rotation_x(state.camControl.theta);
+		Mat44f Ry = make_rotation_y(state.camControl.phi);
+		Mat44f T = make_translation({ 0.f, 0.f, -state.camControl.radius } );
+
+		Mat44f world2camera = T * Ry * Rx;
+
+		Mat44f projCamWor = projection * world2camera * model2world;
 
 		// Draw scene
 		OGL_CHECKPOINT_DEBUG();
 
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		//TODO: draw frame
+		glUseProgram( prog.programId());
+
+		glBindVertexArray(vao);
+		glUniformMatrix4fv(0, 1, GL_TRUE, projCamWor.v);
+
+		glUniformMatrix3fv(
+			1,
+			1, GL_TRUE, normalMatrix.v
+		);
+
+		/*
+		GLfloat a1[] = {0.9f, 0.9f, 0.9f};
+		GLfloat d1[] = {0.05f, 0.05f, 0.05f};
+		*/
+
+		// lighting
+		Vec3f lightDir = normalize(Vec3f {-1.f, 1.f, 0.5f});
+		glUniform3fv(2, 1, &lightDir.x);
+		glUniform3f(3, 0.8f, 0.8f, 0.6f);
+		glUniform3f(4, 0.1f, 0.1f, 0.1f);
+		
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glDrawArrays(GL_TRIANGLES, 0, armCount);
+		glBindVertexArray(0);
 
 		OGL_CHECKPOINT_DEBUG();
 

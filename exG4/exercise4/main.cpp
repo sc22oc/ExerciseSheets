@@ -216,6 +216,12 @@ int main() try
 	GLuint vao = create_vao( gizmo );
 	std::size_t vertexCount = gizmo.positions.size();
 
+	const char* armadilo_path = "assets/ex4/Armadillo.obj";
+
+	auto armMesh = load_wavefront_obj(armadilo_path);
+	GLuint vaoA = create_vao(armMesh);
+	std:size_t armCount = armMesh.positions.size();
+
 	// Main loop
 	while( !glfwWindowShouldClose( window ) )
 	{
@@ -302,11 +308,14 @@ int main() try
 		/* check point mode so we know points in right place
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		glPointSize(10.0f);
-		*/
+		*/ 
 
 
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 		glBindVertexArray(0);
+
+		glBindVertexArray(vaoA);
+		glDrawArrays(GL_TRIANGLES, 0, armCount);
 		
 		OGL_CHECKPOINT_DEBUG();
 
