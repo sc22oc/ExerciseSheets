@@ -11,12 +11,8 @@
 struct SimpleMeshData
 {
 	std::vector<Vec3f> positions;
-	std::vector<Vec3f> normals;
 	std::vector<Vec2f> texcoords;
 };
-
-SimpleMeshData concatenate( SimpleMeshData, SimpleMeshData const& );
-
 
 GLuint create_vao( SimpleMeshData const& );
 

@@ -20,6 +20,9 @@
 #include "defaults.hpp"
 #include "simple_mesh.hpp"
 #include "texture.hpp"
+#include "cylinder.hpp"
+
+#include <stb_image.h>
 
 namespace
 {
@@ -142,6 +145,10 @@ int main() try
 	OGL_CHECKPOINT_ALWAYS();
 
 	// TODO: global GL setup goes here
+	glEnable(GL_FRAMEBUFFER_SRGB);
+	//glEnable(GL_CULL_FACE);
+	glClearColor(0.2f,0.2f,0.2f,0.f);
+	glEnable( GL_DEPTH_TEST );	
 
 	OGL_CHECKPOINT_ALWAYS();
 
@@ -170,9 +177,25 @@ int main() try
 
 	// Create vertex buffers and VAO
 	//TODO: create VBOs and VAO
+	GLuint tex = load_texture_2d("assets/ex6/floor.jpg");
 
 	// Load textures
 	//TODO: load texture(s)
+	SimpleMeshData sd{
+		// Positions
+		{{-1.f, -1.f, 3.f},
+		 {+1.f, -1.f, 3.f},
+		 {+1.f, -1.f, -3.f},
+		 {-1.f, -1.f, 3.f},
+		 {+1.f, -1.f, -3.f},
+		 {-1.f, -1.f, -3.f}},
+
+		// Texture coordinates
+		{{0.f, 0.f}, {1.f, 0.f}, {1.f, 3.f},
+		{0.f, 0.f}, {1.f, 3.f}, {0.f, 3.f}}
+	};
+
+	GLuint vao = create_vao(sd);
 
 	// Main loop
 	while( !glfwWindowShouldClose( window ) )
@@ -223,12 +246,45 @@ int main() try
 			state.camControl.radius = 0.1f;
 
 		// Update: compute matrices
+		// we don't need to make rotation
+		Mat44f model2world = make_rotation_y(0); 
+		Mat44f projection = make_perspective_projection(
+			// conversion to radians
+			60.f * std::numbers::pi_v<float> / 180.f,
+			// aspect ratio
+			fbwidth / float(fbheight),
+			// near and far plane
+			0.1f,
+			100.f
+		);
+
 		//TODO: define and compute projCameraWorld matrix
+		Mat44f Rx = make_rotation_x(state.camControl.theta);
+		Mat44f Ry = make_rotation_y(state.camControl.phi);
+		Mat44f T = make_translation({ 0.f, 0.f, -state.camControl.radius } );
+
+		Mat44f world2camera = T * Ry * Rx;
+
+		Mat44f projCamWor = projection * world2camera * model2world;
 
 		// Draw scene
 		OGL_CHECKPOINT_DEBUG();
 
+		// Draw scene
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		glUseProgram( prog.programId());
 		//TODO: draw frame
+
+		glBindVertexArray(vao);
+		glActiveTexture( GL_TEXTURE0 );
+		glBindTexture( GL_TEXTURE_2D, tex);
+
+		glUniformMatrix4fv(0, 1, GL_TRUE, projCamWor.v);
+		// glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		// mesh data to raw has 6 vertices (statically defined as sd)
+		glDrawArrays(GL_TRIANGLES, 0, sd.positions.size());
+		glBindVertexArray(0);
 
 		OGL_CHECKPOINT_DEBUG();
 
