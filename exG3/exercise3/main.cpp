@@ -258,7 +258,6 @@ int main() try
 		float dt = std::chrono::duration_cast<Secondsf>(now-last).count();
 		last = now;
 
-
 		angle += dt * std::numbers::pi_v<float> * 0.3f;
 		if( angle >= 2.f*std::numbers::pi_v<float> )
 			angle -= 2.f*std::numbers::pi_v<float>;

@@ -16,7 +16,6 @@ SimpleMeshData make_cylinder( bool aCapped, std::size_t aSubdivs, Vec3f aColor, 
 		float y = std::cos( angle );
 		float z = std::sin( angle );
 
-
 		// Two triangles (= 3*2 positions) create one segment of the cylinder’s shell.
 		pos.emplace_back( Vec3f{ 0.f, prevY, prevZ } );
 		pos.emplace_back( Vec3f{ 0.f, y, z } );

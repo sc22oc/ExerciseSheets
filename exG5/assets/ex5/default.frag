@@ -10,10 +10,7 @@ layout (location = 4) uniform vec3 uSceneAmbient;
 
 void main()
 {
-    vec3 normal = normalize(v2fNormal);
-    float nDotL = max(0.0, dot(normal, uLightDir));
-    oColor = (uSceneAmbient + nDotL * uLightDiffuse) * v2fColor;
-
-    // assuming a constant normal
-    //oColor = normal;
+	vec3 normal = normalize(v2fNormal);
+	float nDotL = max(0.0, dot(normal, uLightDir));
+	oColor = (uSceneAmbient + nDotL * uLightDiffuse) * v2fColor;
 }
